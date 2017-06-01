@@ -18,7 +18,7 @@ Rect selection;
 Point origin;
 Mat image;
 bool pause = false;
-double fpss;
+double fpss=2;
 
 Rect PatchRect;
 Mat PatchImg;
@@ -53,9 +53,9 @@ static void onMouse(int event, int x, int y, int, void*)
 				image(PatchRect).copyTo(PatchImg);
 				imshow("Seclected Img", PatchImg);
 
-				char str[100];
+			/*	char str[100];
 				sprintf_s(str, "%d,jpg", int(frame_index / fpss));
-				imwrite(str, PatchImg);
+				imwrite(str, PatchImg);*/
 			}
 			selection = Rect(0, 0, 0, 0);
 		}
@@ -69,16 +69,41 @@ static void onMouse(int event, int x, int y, int, void*)
 int main()
 {
 	
-	printf("avi file name?");
+	/*printf("avi file name?");
 	char nstr[255];
 	scanf_s("%s", nstr);
-	printf("-> %s", nstr);
+	printf("-> %s", nstr);*/
 
-	VideoCapture cap(nstr);
+	VideoCapture cap("video.avi");
 	Mat frame;
 	namedWindow("Demo", 0);
-	setMouseCallback("Demo",)
+	setMouseCallback("Demo", onMouse, 0);
+	printf("P key is pause, ESC key is exit.\n");
 
+	for (;;)
+	{
+		frame_index++;
 
-		return 0;
+		if (!pause)
+			cap >> frame;
+		if (frame.empty())
+			break;
+		frame.copyTo(image);
+
+		if (pause&&selection.width > 0 && selection.height > 0)
+		{
+			rectangle(image, Point(selection.x - 1, selection.y - 1), Point(selection.x + selection.width + 1, selection.y + selection.height + 1), CV_RGB(255, 0, 0));
+		}
+		imshow("Demo", image);
+
+		char k = waitKey(10);
+
+		if (k == 27)
+			break;
+		else if (k == 'p' || k == 'P')
+			pause = !pause;
 	}
+	return 0;
+
+	}
+
