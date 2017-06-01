@@ -46,8 +46,10 @@ int main()
 
 		while (1) {
 			imshow("img", img);
-			if(waitKey(20)>60)
-				break; 
+			if (waitKey(10) > 0)
+			{
+				break;
+			}
 		}
 		destroyAllWindows();
 
