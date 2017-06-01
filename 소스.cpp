@@ -12,46 +12,73 @@
 using namespace std;
 using namespace cv;
 
+//instances
+bool selectObject = false;
+Rect selection;
+Point origin;
+Mat image;
+bool pause = false;
+double fpss;
 
-void CallBackFunc(int event, int x, int y, int flags, void* userdata)
+Rect PatchRect;
+Mat PatchImg;
+
+unsigned int frame_index = 0;
+
+static void onMouse(int event, int x, int y, int, void*)
 {
-	if (event == EVENT_LBUTTONDOWN)
+	if (selectObject&pause)
 	{
-		printf("ILBUTTONDOWN down %d, %d \n", x, y);
-		circle(*(Mat*)userdata, Point(x, y), 5, CV_RGB(255, 0, 0),  5);
+		selection.x = MIN(x, origin.x);
+		selection.y = MIN(y, origin.y);
+		selection.width = std::abs(x - origin.x);
+		selection.height = std::abs(y - origin.y);
+		selection &= Rect(0, 0, image.cols, image.rows);
 	}
-	else if (event == EVENT_RBUTTONDOWN)
+
+	switch (event)
 	{
-		printf("RBUTTONDOWN down %d, %d \n", x, y);
+	case CV_EVENT_LBUTTONDOWN:
+		origin = Point(x, y);
+		selection = Rect(x, y, 0, 0);
+		selectObject = true;
+		break;
+
+	case CV_EVENT_LBUTTONUP:
+		if (selectObject && pause)
+		{
+			if (selection.width > 5 && selection.height > 5)
+			{
+				PatchRect = selection;
+				image(PatchRect).copyTo(PatchImg);
+				imshow("Seclected Img", PatchImg);
+
+				char str[100];
+				sprintf_s(str, "%d,jpg", int(frame_index / fpss));
+				imwrite(str, PatchImg);
+			}
+			selection = Rect(0, 0, 0, 0);
+		}
+		selectObject = false;
+		pause = false;
+
+		break;
 	}
-	else if (event == EVENT_MBUTTONDOWN)
-	{
-		printf("MBUTTONDOWN down %d ,%d \n", x, y);
-	}
-	else if (event == EVENT_MOUSEMOVE)
-	{
-		printf("move %d, %d \n", x, y);
-	}
-	//imshow("img", *(Mat*)userdata);
 }
 
 int main()
 {
 	
+	printf("avi file name?");
+	char nstr[255];
+	scanf_s("%s", nstr);
+	printf("-> %s", nstr);
 
-	namedWindow("img", 0);
-	Mat img = imread("gns.jpg");
+	VideoCapture cap(nstr);
+	Mat frame;
+	namedWindow("Demo", 0);
+	setMouseCallback("Demo",)
 
-	setMouseCallback("img", CallBackFunc, &img);
-
-		while (1) {
-			imshow("img", img);
-			if (waitKey(10) > 0)
-			{
-				break;
-			}
-		}
-		destroyAllWindows();
 
 		return 0;
 	}
