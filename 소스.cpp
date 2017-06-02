@@ -15,25 +15,21 @@ using namespace cv;
 //instances
 bool selectObject = false;
 Rect selection;
-Point origin;
+Point origin; 
+int trackObject = 0;
 Mat image;
-bool pause = false;
-double fpss=2;
-
-Rect PatchRect;
-Mat PatchImg;
-
-unsigned int frame_index = 0;
 
 static void onMouse(int event, int x, int y, int, void*)
 {
-	if (selectObject&pause)
+	if (selectObject)
 	{
 		selection.x = MIN(x, origin.x);
 		selection.y = MIN(y, origin.y);
 		selection.width = std::abs(x - origin.x);
 		selection.height = std::abs(y - origin.y);
+
 		selection &= Rect(0, 0, image.cols, image.rows);
+
 	}
 
 	switch (event)
@@ -45,65 +41,46 @@ static void onMouse(int event, int x, int y, int, void*)
 		break;
 
 	case CV_EVENT_LBUTTONUP:
-		if (selectObject && pause)
-		{
-			if (selection.width > 5 && selection.height > 5)
-			{
-				PatchRect = selection;
-				image(PatchRect).copyTo(PatchImg);
-				imshow("Seclected Img", PatchImg);
-
-			/*	char str[100];
-				sprintf_s(str, "%d,jpg", int(frame_index / fpss));
-				imwrite(str, PatchImg);*/
-			}
-			selection = Rect(0, 0, 0, 0);
-		}
 		selectObject = false;
-		pause = false;
-
+		if (selection.width > 0 && selection.height > 0)
+			trackObject = -1;
 		break;
 	}
+
 }
 
-int main()
+int main(void)
 {
-	
-	/*printf("avi file name?");
-	char nstr[255];
-	scanf_s("%s", nstr);
-	printf("-> %s", nstr);*/
-
-	VideoCapture cap("video.avi");
+	VideoCapture cap(0);
 	Mat frame;
 	namedWindow("Demo", 0);
 	setMouseCallback("Demo", onMouse, 0);
-	printf("P key is pause, ESC key is exit.\n");
 
 	for (;;)
 	{
-		frame_index++;
 
-		if (!pause)
-			cap >> frame;
+		cap >> frame;
 		if (frame.empty())
 			break;
+
 		frame.copyTo(image);
 
-		if (pause&&selection.width > 0 && selection.height > 0)
+		if (selectObject && selection.width > 0 && selection.height > 0)
 		{
-			rectangle(image, Point(selection.x - 1, selection.y - 1), Point(selection.x + selection.width + 1, selection.y + selection.height + 1), CV_RGB(255, 0, 0));
+			Mat roi(image, selection);
+			bitwise_not(roi, roi);
+
+			printf("%d %d %d %d\n", selection.x, selection.y, selection.width, selection.height);
+
 		}
 		imshow("Demo", image);
 
-		char k = waitKey(10);
 
-		if (k == 27)
+		if (waitKey(10) > 10)
 			break;
-		else if (k == 'p' || k == 'P')
-			pause = !pause;
+
 	}
+
 	return 0;
 
-	}
-
+}
