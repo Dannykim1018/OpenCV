@@ -75,10 +75,12 @@ int main(void)
 		}
 		imshow("Demo", image);
 
-
-		if (waitKey(10) > 10)
+		if (waitKey(10) == 27)
 			break;
-
+		/*char key = -1;
+		char ch = waitKey(10);
+		if (ch != -1) key = ch;
+		if (key == 27) break;*/
 	}
 
 	return 0;
